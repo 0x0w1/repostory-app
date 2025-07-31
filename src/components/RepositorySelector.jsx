@@ -12,23 +12,33 @@ const RepositorySelector = ({
       (selected) => selected.name === repo.name
     );
 
+    let newRepos;
     if (isSelected) {
-      onRepoToggle(
-        selectedRepos.filter((selected) => selected.name !== repo.name)
-      );
+      newRepos = selectedRepos.filter((selected) => selected.name !== repo.name);
     } else if (selectedRepos.length < maxSelections) {
-      onRepoToggle([...selectedRepos, repo]);
+      newRepos = [...selectedRepos, repo];
+    } else {
+      return; // Don't trigger update if at max limit
     }
+
+    // Use requestAnimationFrame for smoother UI updates
+    requestAnimationFrame(() => {
+      onRepoToggle(newRepos);
+    });
   };
 
   const handleSelectAll = () => {
     const allRepos = Object.values(repositoriesByCategory).flat();
     const reposToSelect = allRepos.slice(0, maxSelections);
-    onRepoToggle(reposToSelect);
+    requestAnimationFrame(() => {
+      onRepoToggle(reposToSelect);
+    });
   };
 
   const handleDeselectAll = () => {
-    onRepoToggle([]);
+    requestAnimationFrame(() => {
+      onRepoToggle([]);
+    });
   };
 
   const allReposCount = Object.values(repositoriesByCategory).flat().length;
