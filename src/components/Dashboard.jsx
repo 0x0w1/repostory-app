@@ -3,6 +3,7 @@ import Chart from "./Chart";
 import RepositorySelector from "./RepositorySelector";
 import MetricSelector from "./MetricSelector";
 import DateRangeSelector from "./DateRangeSelector";
+import ThemeToggle from "./ThemeToggle";
 import {
   loadRepositoryData,
   processTimeSeriesData,
@@ -89,178 +90,212 @@ const Dashboard = () => {
   const [processedRepoData, setProcessedRepoData] = useState({});
   const [chartData, setChartData] = useState([]);
 
-  // Process repository data asynchronously
+  // Process repository data and generate chart data
   const processRepositoryData = useCallback(
-    async (repos) => {
+    (repos, currentMetric) => {
+      // Use selectedMetric as fallback if currentMetric is not provided
+      const metric = currentMetric || selectedMetric;
       if (repos.length === 0) {
         setProcessedRepoData({});
         setChartData([]);
         return;
       }
 
-      setChartLoading(true);
+      // Don't show loading state for repo selection changes
+      setChartLoading((prev) => {
+        // Only show loading if there's no existing processed data
+        return Object.keys(processedRepoData).length === 0;
+      });
 
-      // Use setTimeout to make the processing non-blocking
-      setTimeout(async () => {
-        try {
-          const processed = {};
+      try {
+        const processed = {};
 
-          // Process each repository
-          for (const repo of repos) {
-            const timeSeriesData = processTimeSeriesData(
-              repo.starsByDate,
-              repo.forksByDate
-            );
-
-            // Create date-indexed map for O(1) lookup
-            const dateMap = new Map();
-            timeSeriesData.forEach((point) => {
-              dateMap.set(point.date, point);
-            });
-
-            processed[repo.name] = {
-              data: timeSeriesData,
-              dateMap: dateMap,
-            };
+        // Process each repository
+        for (const repo of repos) {
+          if (!repo || !repo.name) {
+            console.warn('Invalid repository object:', repo);
+            continue;
           }
 
-          setProcessedRepoData(processed);
+          const timeSeriesData = processTimeSeriesData(
+            repo.starsByDate || {},
+            repo.forksByDate || {}
+          );
 
-          // Generate chart data
-          const allDatesSet = new Set();
-          Object.values(processed).forEach(({ data }) => {
-            data.forEach((point) => allDatesSet.add(point.date));
+          // Create date-indexed map for O(1) lookup
+          const dateMap = new Map();
+          timeSeriesData.forEach((point) => {
+            dateMap.set(point.date, point);
           });
 
-          const sortedDates = Array.from(allDatesSet).sort();
-
-          // Apply date filtering - if no start date, show all data
-          const filteredDates = sortedDates.filter((date) => {
-            if (startDate && startDate.trim() && date < startDate) return false;
-            if (endDate && endDate.trim() && date > endDate) return false;
-            return true;
-          });
-
-          const newChartData = filteredDates.map((date) => {
-            const point = { date };
-
-            repos.forEach((repo) => {
-              const { dateMap, data } = processed[repo.name];
-              const dataPoint = dateMap.get(date);
-
-              if (dataPoint) {
-                point[repo.name] =
-                  selectedMetric === "stars"
-                    ? dataPoint.stars
-                    : dataPoint.forks;
-              } else {
-                // Use binary search for better performance
-                let lastValue = 0;
-                let left = 0;
-                let right = data.length - 1;
-                let bestIndex = -1;
-
-                while (left <= right) {
-                  const mid = Math.floor((left + right) / 2);
-                  if (data[mid].date < date) {
-                    bestIndex = mid;
-                    left = mid + 1;
-                  } else {
-                    right = mid - 1;
-                  }
-                }
-
-                if (bestIndex !== -1) {
-                  lastValue =
-                    selectedMetric === "stars"
-                      ? data[bestIndex].stars
-                      : data[bestIndex].forks;
-                }
-                point[repo.name] = lastValue;
-              }
-            });
-
-            return point;
-          });
-
-          setChartData(newChartData);
-        } catch (error) {
-          console.error("Error processing chart data:", error);
-        } finally {
-          setChartLoading(false);
+          processed[repo.name] = {
+            data: timeSeriesData,
+            dateMap: dateMap,
+          };
         }
-      }, 10);
-    },
-    [selectedMetric, startDate, endDate]
-  );
 
-  // Update chart data when metric changes (fast operation)
-  const updateChartDataForMetric = useCallback(
-    (newMetric, currentProcessedData = processedRepoData) => {
-      if (Object.keys(currentProcessedData).length === 0) return;
+        setProcessedRepoData(processed);
 
-      setChartData((prevData) =>
-        prevData.map((point) => {
-          const newPoint = { date: point.date };
+        // Generate chart data with current metric inline to avoid dependency issues
+        if (Object.keys(processed).length === 0 || repos.length === 0) {
+          setChartData([]);
+          return;
+        }
 
-          selectedRepos.forEach((repo) => {
-            const repoData = currentProcessedData[repo.name];
-            if (!repoData) {
-              newPoint[repo.name] = 0;
+        // Generate chart data
+        const allDatesSet = new Set();
+        Object.values(processed).forEach(({ data }) => {
+          if (data && Array.isArray(data)) {
+            data.forEach((point) => allDatesSet.add(point.date));
+          }
+        });
+
+        const sortedDates = Array.from(allDatesSet).sort();
+
+        // Apply date filtering
+        const filteredDates = sortedDates.filter((date) => {
+          if (startDate && startDate.trim() && date < startDate) return false;
+          if (endDate && endDate.trim() && date > endDate) return false;
+          return true;
+        });
+
+        const newChartData = filteredDates.map((date) => {
+          const point = { date };
+
+          repos.forEach((repo) => {
+            const processedRepo = processed[repo.name];
+            if (!processedRepo) {
+              console.warn(`No processed data found for repository: ${repo.name}`);
+              point[repo.name] = 0;
               return;
             }
 
-            const { dateMap, data } = repoData;
-            const dataPoint = dateMap.get(point.date);
+            const { dateMap, data } = processedRepo;
+            const dataPoint = dateMap.get(date);
 
             if (dataPoint) {
-              newPoint[repo.name] =
-                newMetric === "stars" ? dataPoint.stars : dataPoint.forks;
+              point[repo.name] =
+                metric === "stars" ? dataPoint.stars : dataPoint.forks;
             } else {
-              // Find last valid value
+              // Use binary search for better performance
               let lastValue = 0;
-              for (let i = data.length - 1; i >= 0; i--) {
-                if (data[i].date < point.date) {
-                  lastValue =
-                    newMetric === "stars" ? data[i].stars : data[i].forks;
-                  break;
+              let left = 0;
+              let right = data.length - 1;
+              let bestIndex = -1;
+
+              while (left <= right) {
+                const mid = Math.floor((left + right) / 2);
+                if (data[mid].date < date) {
+                  bestIndex = mid;
+                  left = mid + 1;
+                } else {
+                  right = mid - 1;
                 }
               }
-              newPoint[repo.name] = lastValue;
+
+              if (bestIndex !== -1) {
+                lastValue =
+                  metric === "stars" ? data[bestIndex].stars : data[bestIndex].forks;
+              }
+              point[repo.name] = lastValue;
             }
           });
 
-          return newPoint;
-        })
-      );
+          return point;
+        });
+
+        setChartData(newChartData);
+      } catch (error) {
+        console.error("Error processing chart data:", error);
+      } finally {
+        setChartLoading(false);
+      }
     },
-    [selectedRepos]
+    [startDate, endDate, selectedMetric]
   );
 
-  // Debounced chart data processing
+  // Update chart data when only metric changes (reuse existing processed data)
+  const updateChartForMetricChange = useCallback(() => {
+    if (!processedRepoData || Object.keys(processedRepoData).length === 0 || !selectedRepos || selectedRepos.length === 0) {
+      return;
+    }
+
+    setChartData((prevChartData) => {
+      return prevChartData.map((point) => {
+        const newPoint = { date: point.date };
+
+        selectedRepos.forEach((repo) => {
+          const processedRepo = processedRepoData[repo.name];
+          if (!processedRepo) {
+            newPoint[repo.name] = 0;
+            return;
+          }
+
+          const { dateMap, data } = processedRepo;
+          const dataPoint = dateMap.get(point.date);
+
+          if (dataPoint) {
+            newPoint[repo.name] =
+              selectedMetric === "stars" ? dataPoint.stars : dataPoint.forks;
+          } else {
+            // Use binary search to find the last available value before this date
+            let lastValue = 0;
+            let left = 0;
+            let right = data.length - 1;
+            let bestIndex = -1;
+
+            while (left <= right) {
+              const mid = Math.floor((left + right) / 2);
+              if (data[mid].date < point.date) {
+                bestIndex = mid;
+                left = mid + 1;
+              } else {
+                right = mid - 1;
+              }
+            }
+
+            if (bestIndex !== -1) {
+              lastValue =
+                selectedMetric === "stars" ? data[bestIndex].stars : data[bestIndex].forks;
+            }
+            newPoint[repo.name] = lastValue;
+          }
+        });
+
+        return newPoint;
+      });
+    });
+  }, [selectedMetric]);
+
+
+  // Create a stable debounced function that always uses current metric
   const debouncedProcessData = useMemo(
-    () => debounce(processRepositoryData, 300),
-    [debounce, processRepositoryData]
+    () => debounce((repos, metric) => processRepositoryData(repos, metric), 50),
+    [processRepositoryData]
   );
 
   // Effect for repository changes
   useEffect(() => {
-    debouncedProcessData(selectedRepos);
-  }, [selectedRepos, debouncedProcessData]);
+    // For single repository changes, update immediately
+    if (selectedRepos.length <= 5) {
+      processRepositoryData(selectedRepos, selectedMetric);
+    } else {
+      // For bulk changes, use debounce with current metric
+      debouncedProcessData(selectedRepos, selectedMetric);
+    }
+  }, [selectedRepos, selectedMetric, debouncedProcessData]);
 
   // Effect for metric changes (immediate update)
   useEffect(() => {
-    if (Object.keys(processedRepoData).length > 0 && chartData.length > 0) {
-      updateChartDataForMetric(selectedMetric, processedRepoData);
-    }
-  }, [selectedMetric]);
+    updateChartForMetricChange();
+  }, [updateChartForMetricChange]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading repository data...</p>
+          <p className="text-gray-600 dark:text-gray-300">Loading repository data...</p>
         </div>
       </div>
     );
@@ -268,25 +303,28 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-xl mb-2">⚠️</div>
-          <p className="text-gray-600">{error}</p>
+          <p className="text-gray-600 dark:text-gray-300">{error}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <div className="container mx-auto px-4 py-8">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Repository Stars/Forks History Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Track and compare GitHub stars and forks.
-          </p>
+        <header className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Repository Stars/Forks History Dashboard
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300">
+              Track and compare GitHub stars and forks.
+            </p>
+          </div>
+          <ThemeToggle className="mt-1" />
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -306,14 +344,14 @@ const Dashboard = () => {
               />
             </div>
             <div className="mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Repository Trends
               </h2>
             </div>
 
             {chartLoading ? (
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   {selectedMetric === "stars" ? "Stars" : "Forks"} Over Time
                 </h3>
                 <div
@@ -322,8 +360,8 @@ const Dashboard = () => {
                 >
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Processing chart data...</p>
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className="text-gray-600 dark:text-gray-300">Processing chart data...</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                       {selectedRepos.length} repositories selected
                     </p>
                   </div>
@@ -331,6 +369,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <Chart
+                key={`${selectedMetric}-${selectedRepos.map(r => r.name).join('-')}`}
                 data={chartData}
                 metric={selectedMetric}
                 selectedRepos={selectedRepos}
@@ -340,17 +379,17 @@ const Dashboard = () => {
             )}
 
             {selectedRepos.length > 0 && (
-              <div className="mt-6 bg-white p-6 rounded-lg shadow-sm border">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="mt-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Repository Statistics
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {selectedRepos.map((repo) => (
-                    <div key={repo.name} className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-gray-900 mb-2">
+                    <div key={repo.name} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                         {repo.name}
                       </h4>
-                      <div className="space-y-1 text-sm text-gray-600">
+                      <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
                         <p>⭐ {repo.totalStars.toLocaleString()} stars</p>
                         <p>
                           🔀{" "}
@@ -359,7 +398,7 @@ const Dashboard = () => {
                             .toLocaleString()}{" "}
                           forks
                         </p>
-                        <p className="text-xs">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           Updated:{" "}
                           {new Date(repo.fetchedAt).toLocaleDateString()}
                         </p>

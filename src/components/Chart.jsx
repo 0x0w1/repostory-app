@@ -54,8 +54,8 @@ const Chart = ({
       ({ active, payload, label }) => {
         if (active && payload && payload.length) {
           return (
-            <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-              <p className="font-medium text-gray-900">{formatDate(label)}</p>
+            <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
+              <p className="font-medium text-gray-900 dark:text-white">{formatDate(label)}</p>
               {payload.map((entry, index) => (
                 <p
                   key={index}
@@ -91,7 +91,7 @@ const Chart = ({
             return (
               <div
                 key={entry.dataKey}
-                className={`flex items-center cursor-pointer hover:bg-gray-50 px-2 py-1 rounded transition-colors ${
+                className={`flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors ${
                   isHidden ? "opacity-50" : ""
                 }`}
                 onClick={() => onRepoVisibilityToggle(entry.dataKey)}
@@ -105,7 +105,7 @@ const Chart = ({
                 />
                 <span
                   className={`text-sm ${
-                    isHidden ? "line-through text-gray-500" : "text-gray-700"
+                    isHidden ? "line-through text-gray-500 dark:text-gray-400" : "text-gray-700 dark:text-gray-300"
                   }`}
                 >
                   {entry.dataKey}
@@ -119,43 +119,66 @@ const Chart = ({
     [hiddenRepos, onRepoVisibilityToggle]
   );
 
-  if (!data || data.length === 0) {
+  // Clean and sort data to ensure proper line rendering
+  const cleanedData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    
+    return data
+      .filter(point => point && point.date) // Filter out invalid points
+      .sort((a, b) => new Date(a.date) - new Date(b.date)) // Ensure chronological order
+      .map(point => {
+        const cleanPoint = { date: point.date };
+        selectedRepos?.forEach(repo => {
+          const value = point[repo.name];
+          // Ensure numeric values, convert negative to 0, handle NaN/undefined
+          cleanPoint[repo.name] = isNaN(value) || value === undefined || value === null ? 0 : Math.max(0, Number(value));
+        });
+        return cleanPoint;
+      });
+  }, [data, selectedRepos]);
+
+  if (!cleanedData || cleanedData.length === 0 || !selectedRepos || selectedRepos.length === 0) {
     return (
       <div
-        className="flex items-center justify-center bg-gray-50 rounded-lg"
+        className="flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg"
         style={{ height: `${chartHeight}px` }}
       >
-        <p className="text-gray-500">No data available</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          {!selectedRepos || selectedRepos.length === 0 ? "No repositories selected" : "No data available"}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         {metric === "stars" ? "Stars" : "Forks"} Over Time
       </h3>
       <ResponsiveContainer width="100%" height={chartHeight}>
         <LineChart
-          data={data}
+          data={cleanedData}
           margin={{
             top: 5,
             right: 30,
             left: isMobile ? 5 : 20,
             bottom: 5,
           }}
+          isAnimationActive={false}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-gray-600" />
           <XAxis
             dataKey="date"
             tickFormatter={formatXAxisLabel}
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 12, fill: 'currentColor' }}
             stroke="#666"
+            className="dark:stroke-gray-400 dark:text-gray-300"
           />
           <YAxis
             tickFormatter={formatNumber}
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 12, fill: 'currentColor' }}
             stroke="#666"
+            className="dark:stroke-gray-400 dark:text-gray-300"
             width={isMobile ? 40 : 60}
           />
           <Tooltip content={<CustomTooltip />} />
@@ -174,6 +197,9 @@ const Chart = ({
                 dot={false}
                 activeDot={{ r: isHidden ? 0 : 4 }}
                 hide={isHidden}
+                isAnimationActive={false}
+                connectNulls={false}
+                monotone={true}
               />
             );
           })}

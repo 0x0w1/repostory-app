@@ -13,39 +13,54 @@ export const loadRepositoryData = async () => {
 
     const repositoriesByCategory = {};
 
-    for (const [category, urls] of Object.entries(repositoriesConfig)) {
-      repositoriesByCategory[category] = [];
+    // Process all categories in parallel
+    const categoryPromises = Object.entries(repositoriesConfig).map(
+      async ([category, urls]) => {
+        // Process all URLs in a category in parallel
+        const repoPromises = urls.map(async (url) => {
+          try {
+            const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+            if (match) {
+              const [, owner, repo] = match;
+              const fileName = `${owner}_${repo}.json`;
+              const dataUrl = `https://raw.githubusercontent.com/0x0w1/repostory/refs/heads/${branch}/repo_data/${fileName}`;
 
-      for (const url of urls) {
-        try {
-          const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
-          if (match) {
-            const [, owner, repo] = match;
-            const fileName = `${owner}_${repo}.json`;
-            const dataUrl = `https://raw.githubusercontent.com/0x0w1/repostory/refs/heads/${branch}/repo_data/${fileName}`;
+              const response = await fetch(dataUrl);
+              const data = await response.json();
 
-            const response = await fetch(dataUrl);
-            const data = await response.json();
-
-            repositoriesByCategory[category].push({
-              name: `${owner}/${repo}`,
-              fileName: fileName,
-              totalStars: data.total_stars,
-              fetchedAt: data.fetched_at,
-              starsByDate: data.stars_by_date || {},
-              forksByDate: data.forks_by_date || {},
-              category: category,
-              url: url,
-            });
+              return {
+                name: `${owner}/${repo}`,
+                fileName: fileName,
+                totalStars: data.total_stars,
+                fetchedAt: data.fetched_at,
+                starsByDate: data.stars_by_date || {},
+                forksByDate: data.forks_by_date || {},
+                category: category,
+                url: url,
+              };
+            }
+            return null;
+          } catch (error) {
+            console.warn(`Failed to load data for ${url}:`, error);
+            return null;
           }
-        } catch (error) {
-          console.warn(`Failed to load data for ${url}:`, error);
-        }
-      }
+        });
 
-      repositoriesByCategory[category].sort(
-        (a, b) => b.totalStars - a.totalStars
-      );
+        const repos = await Promise.all(repoPromises);
+        const validRepos = repos.filter(repo => repo !== null);
+        
+        // Sort by total stars (descending)
+        validRepos.sort((a, b) => b.totalStars - a.totalStars);
+        
+        return [category, validRepos];
+      }
+    );
+
+    const categoryResults = await Promise.all(categoryPromises);
+    
+    // Convert results back to object format
+    for (const [category, repos] of categoryResults) {
+      repositoriesByCategory[category] = repos;
     }
 
     return repositoriesByCategory;
@@ -133,10 +148,10 @@ export const formatNumber = (num) => {
 };
 
 export const refreshRepositoryData = async (selectedRepos) => {
-  const refreshedRepos = [];
   const branch = getBranch();
 
-  for (const repo of selectedRepos) {
+  // Process all repositories in parallel
+  const refreshPromises = selectedRepos.map(async (repo) => {
     try {
       const dataUrl = `https://raw.githubusercontent.com/0x0w1/repostory/refs/heads/${branch}/repo_data/${
         repo.fileName
@@ -149,18 +164,19 @@ export const refreshRepositoryData = async (selectedRepos) => {
       });
       const data = await response.json();
 
-      refreshedRepos.push({
+      return {
         ...repo,
         totalStars: data.total_stars,
         fetchedAt: data.fetched_at,
         starsByDate: data.stars_by_date || {},
         forksByDate: data.forks_by_date || {},
-      });
+      };
     } catch (error) {
       console.warn(`Failed to refresh ${repo.name}:`, error);
-      refreshedRepos.push(repo);
+      return repo; // Return original repo data on error
     }
-  }
+  });
 
+  const refreshedRepos = await Promise.all(refreshPromises);
   return refreshedRepos;
 };
