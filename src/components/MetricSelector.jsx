@@ -13,7 +13,12 @@ const MetricSelector = ({ selectedMetric, onMetricChange }) => {
         {metrics.map((metric) => (
           <button
             key={metric.value}
-            onClick={() => onMetricChange(metric.value)}
+            onClick={() => {
+              // Use requestAnimationFrame for smoother metric transitions
+              requestAnimationFrame(() => {
+                onMetricChange(metric.value);
+              });
+            }}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
               selectedMetric === metric.value
                 ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300"

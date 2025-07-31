@@ -119,13 +119,33 @@ const Chart = ({
     [hiddenRepos, onRepoVisibilityToggle]
   );
 
-  if (!data || data.length === 0) {
+  // Clean and sort data to ensure proper line rendering
+  const cleanedData = useMemo(() => {
+    if (!data || data.length === 0) return [];
+    
+    return data
+      .filter(point => point && point.date) // Filter out invalid points
+      .sort((a, b) => new Date(a.date) - new Date(b.date)) // Ensure chronological order
+      .map(point => {
+        const cleanPoint = { date: point.date };
+        selectedRepos?.forEach(repo => {
+          const value = point[repo.name];
+          // Ensure numeric values, convert negative to 0, handle NaN/undefined
+          cleanPoint[repo.name] = isNaN(value) || value === undefined || value === null ? 0 : Math.max(0, Number(value));
+        });
+        return cleanPoint;
+      });
+  }, [data, selectedRepos]);
+
+  if (!cleanedData || cleanedData.length === 0 || !selectedRepos || selectedRepos.length === 0) {
     return (
       <div
         className="flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg"
         style={{ height: `${chartHeight}px` }}
       >
-        <p className="text-gray-500 dark:text-gray-400">No data available</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          {!selectedRepos || selectedRepos.length === 0 ? "No repositories selected" : "No data available"}
+        </p>
       </div>
     );
   }
@@ -137,13 +157,14 @@ const Chart = ({
       </h3>
       <ResponsiveContainer width="100%" height={chartHeight}>
         <LineChart
-          data={data}
+          data={cleanedData}
           margin={{
             top: 5,
             right: 30,
             left: isMobile ? 5 : 20,
             bottom: 5,
           }}
+          isAnimationActive={false}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-gray-600" />
           <XAxis
@@ -176,6 +197,9 @@ const Chart = ({
                 dot={false}
                 activeDot={{ r: isHidden ? 0 : 4 }}
                 hide={isHidden}
+                isAnimationActive={false}
+                connectNulls={false}
+                monotone={true}
               />
             );
           })}
