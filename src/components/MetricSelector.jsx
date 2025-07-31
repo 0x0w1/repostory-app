@@ -1,9 +1,9 @@
-import React from 'react';
+import React from "react";
 
 const MetricSelector = ({ selectedMetric, onMetricChange }) => {
   const metrics = [
-    { value: 'stars', label: 'Stars', icon: '⭐' },
-    { value: 'forks', label: 'Forks', icon: '🔀' }
+    { value: "stars", label: "Stars", icon: "⭐" },
+    { value: "forks", label: "Forks", icon: "🔀" },
   ];
 
   return (
@@ -16,8 +16,8 @@ const MetricSelector = ({ selectedMetric, onMetricChange }) => {
             onClick={() => onMetricChange(metric.value)}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg border transition-colors ${
               selectedMetric === metric.value
-                ? 'bg-blue-50 border-blue-200 text-blue-700'
-                : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                ? "bg-blue-50 border-blue-200 text-blue-700"
+                : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
             }`}
           >
             <span>{metric.icon}</span>

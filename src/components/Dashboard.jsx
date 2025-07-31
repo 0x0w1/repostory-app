@@ -21,11 +21,11 @@ const Dashboard = () => {
   const [startDate, setStartDate] = useState(() => {
     const fiveYearsAgo = new Date();
     fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-    return fiveYearsAgo.toISOString().split('T')[0];
+    return fiveYearsAgo.toISOString().split("T")[0];
   });
   const [endDate, setEndDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().split('T')[0];
+    return today.toISOString().split("T")[0];
   });
 
   useEffect(() => {
@@ -56,10 +56,9 @@ const Dashboard = () => {
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
 
   const handleRepoVisibilityToggle = (repoName) => {
     setHiddenRepos((prev) => {
@@ -136,7 +135,7 @@ const Dashboard = () => {
           const sortedDates = Array.from(allDatesSet).sort();
 
           // Apply date filtering - if no start date, show all data
-          const filteredDates = sortedDates.filter(date => {
+          const filteredDates = sortedDates.filter((date) => {
             if (startDate && startDate.trim() && date < startDate) return false;
             if (endDate && endDate.trim() && date > endDate) return false;
             return true;
@@ -298,7 +297,7 @@ const Dashboard = () => {
                 selectedMetric={selectedMetric}
                 onMetricChange={setSelectedMetric}
               />
-              
+
               <DateRangeSelector
                 startDate={startDate}
                 endDate={endDate}
@@ -317,7 +316,10 @@ const Dashboard = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   {selectedMetric === "stars" ? "Stars" : "Forks"} Over Time
                 </h3>
-                <div className="flex items-center justify-center" style={{ height: isMobile ? '400px' : '676px' }}>
+                <div
+                  className="flex items-center justify-center"
+                  style={{ height: isMobile ? "400px" : "676px" }}
+                >
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Processing chart data...</p>
