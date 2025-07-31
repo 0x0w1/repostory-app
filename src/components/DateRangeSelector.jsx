@@ -1,10 +1,15 @@
 import React from "react";
 
-const DateRangeSelector = ({ startDate, endDate, onStartDateChange, onEndDateChange }) => {
+const DateRangeSelector = ({
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
+}) => {
   const formatDateForInput = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toISOString().split('T')[0]; // yyyy-MM-dd format
+    return date.toISOString().split("T")[0]; // yyyy-MM-dd format
   };
 
   const handleStartDateChange = (e) => {
@@ -37,11 +42,14 @@ const DateRangeSelector = ({ startDate, endDate, onStartDateChange, onEndDateCha
           Reset
         </button>
       </div>
-      
+
       <div className="space-y-4">
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="start-date"
+              className="block text-sm font-medium text-gray-700"
+            >
               Start Date
             </label>
             {startDate && (
@@ -61,9 +69,12 @@ const DateRangeSelector = ({ startDate, endDate, onStartDateChange, onEndDateCha
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
         </div>
-        
+
         <div>
-          <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="end-date"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             End Date
           </label>
           <input

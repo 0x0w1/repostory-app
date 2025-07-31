@@ -32,7 +32,8 @@ const RepositorySelector = ({
   };
 
   const allReposCount = Object.values(repositoriesByCategory).flat().length;
-  const canSelectAll = selectedRepos.length < Math.min(maxSelections, allReposCount);
+  const canSelectAll =
+    selectedRepos.length < Math.min(maxSelections, allReposCount);
   const hasSelections = selectedRepos.length > 0;
 
   return (
@@ -47,7 +48,7 @@ const RepositorySelector = ({
           </span>
         </div>
       </div>
-      
+
       <div className="flex space-x-2 mb-4">
         <button
           onClick={handleSelectAll}
@@ -60,7 +61,7 @@ const RepositorySelector = ({
         >
           Select All ({Math.min(maxSelections, allReposCount)})
         </button>
-        
+
         <button
           onClick={handleDeselectAll}
           disabled={!hasSelections}
@@ -108,7 +109,9 @@ const RepositorySelector = ({
                       disabled={!canSelect}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{repo.name}</p>
+                      <p className="font-medium text-gray-900 truncate">
+                        {repo.name}
+                      </p>
                       <p className="text-sm text-gray-500 truncate">
                         ⭐ {formatNumber(repo.totalStars)} stars
                       </p>
