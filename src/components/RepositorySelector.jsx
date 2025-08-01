@@ -5,7 +5,7 @@ const RepositorySelector = ({
   repositoriesByCategory,
   selectedRepos,
   onRepoToggle,
-  maxSelections = 5,
+  maxSelections = null,
 }) => {
   const handleToggle = (repo) => {
     const isSelected = selectedRepos.some(
@@ -15,7 +15,7 @@ const RepositorySelector = ({
     let newRepos;
     if (isSelected) {
       newRepos = selectedRepos.filter((selected) => selected.name !== repo.name);
-    } else if (selectedRepos.length < maxSelections) {
+    } else if (!maxSelections || selectedRepos.length < maxSelections) {
       newRepos = [...selectedRepos, repo];
     } else {
       return; // Don't trigger update if at max limit
@@ -29,7 +29,7 @@ const RepositorySelector = ({
 
   const handleSelectAll = () => {
     const allRepos = Object.values(repositoriesByCategory).flat();
-    const reposToSelect = allRepos.slice(0, maxSelections);
+    const reposToSelect = maxSelections ? allRepos.slice(0, maxSelections) : allRepos;
     requestAnimationFrame(() => {
       onRepoToggle(reposToSelect);
     });
@@ -42,8 +42,9 @@ const RepositorySelector = ({
   };
 
   const allReposCount = Object.values(repositoriesByCategory).flat().length;
-  const canSelectAll =
-    selectedRepos.length < Math.min(maxSelections, allReposCount);
+  const canSelectAll = maxSelections 
+    ? selectedRepos.length < Math.min(maxSelections, allReposCount)
+    : selectedRepos.length < allReposCount;
   const hasSelections = selectedRepos.length > 0;
 
   return (
@@ -54,7 +55,7 @@ const RepositorySelector = ({
         </h3>
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            {selectedRepos.length}/{maxSelections} selected
+            {selectedRepos.length}{maxSelections ? `/${maxSelections}` : ''} selected
           </span>
         </div>
       </div>
@@ -69,7 +70,7 @@ const RepositorySelector = ({
               : "bg-gray-200 dark:bg-gray-600 text-gray-400 dark:text-gray-500 cursor-not-allowed"
           }`}
         >
-          Select All ({Math.min(maxSelections, allReposCount)})
+          Select All ({maxSelections ? Math.min(maxSelections, allReposCount) : allReposCount})
         </button>
 
         <button
@@ -97,7 +98,7 @@ const RepositorySelector = ({
                   (selected) => selected.name === repo.name
                 );
                 const canSelect =
-                  selectedRepos.length < maxSelections || isSelected;
+                  !maxSelections || selectedRepos.length < maxSelections || isSelected;
 
                 return (
                   <div
