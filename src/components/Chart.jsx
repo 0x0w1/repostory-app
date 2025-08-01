@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate, formatNumber } from "../utils/dataLoader";
 
 const Chart = ({
@@ -54,8 +55,8 @@ const Chart = ({
       ({ active, payload, label }) => {
         if (active && payload && payload.length) {
           return (
-            <div className="bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg">
-              <p className="font-medium text-gray-900 dark:text-white">{formatDate(label)}</p>
+            <Card className="p-3 shadow-lg">
+              <p className="font-medium text-foreground">{formatDate(label)}</p>
               {payload.map((entry, index) => (
                 <p
                   key={index}
@@ -65,7 +66,7 @@ const Chart = ({
                   {entry.dataKey}: {formatNumber(entry.value)}
                 </p>
               ))}
-            </div>
+            </Card>
           );
         }
         return null;
@@ -91,7 +92,7 @@ const Chart = ({
             return (
               <div
                 key={entry.dataKey}
-                className={`flex items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors ${
+                className={`flex items-center cursor-pointer hover:bg-accent px-2 py-1 rounded transition-colors ${
                   isHidden ? "opacity-50" : ""
                 }`}
                 onClick={() => onRepoVisibilityToggle(entry.dataKey)}
@@ -99,13 +100,13 @@ const Chart = ({
                 <div
                   className="w-3 h-3 mr-2"
                   style={{
-                    backgroundColor: isHidden ? "#d1d5db" : entry.color,
+                    backgroundColor: isHidden ? "hsl(var(--muted-foreground))" : entry.color,
                     transition: "background-color 0.2s",
                   }}
                 />
                 <span
                   className={`text-sm ${
-                    isHidden ? "line-through text-gray-500 dark:text-gray-400" : "text-gray-700 dark:text-gray-300"
+                    isHidden ? "line-through text-muted-foreground" : "text-foreground"
                   }`}
                 >
                   {entry.dataKey}
@@ -139,22 +140,27 @@ const Chart = ({
 
   if (!cleanedData || cleanedData.length === 0 || !selectedRepos || selectedRepos.length === 0) {
     return (
-      <div
-        className="flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg"
-        style={{ height: `${chartHeight}px` }}
-      >
-        <p className="text-gray-500 dark:text-gray-400">
-          {!selectedRepos || selectedRepos.length === 0 ? "No repositories selected" : "No data available"}
-        </p>
-      </div>
+      <Card>
+        <CardContent 
+          className="flex items-center justify-center"
+          style={{ height: `${chartHeight}px` }}
+        >
+          <p className="text-muted-foreground">
+            {!selectedRepos || selectedRepos.length === 0 ? "No repositories selected" : "No data available"}
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        {metric === "stars" ? "Stars" : "Forks"} Over Time
-      </h3>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          {metric === "stars" ? "Stars" : "Forks"} Over Time
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
       <ResponsiveContainer width="100%" height={chartHeight}>
         <LineChart
           data={cleanedData}
@@ -173,6 +179,8 @@ const Chart = ({
             tick={{ fontSize: 12, fill: 'currentColor' }}
             stroke="#666"
             className="dark:stroke-gray-400 dark:text-gray-300"
+            interval={isMobile ? Math.max(Math.floor((cleanedData.length - 1) / 2), 0) : "preserveStart"}
+            minTickGap={isMobile ? 60 : 20}
           />
           <YAxis
             tickFormatter={formatNumber}
@@ -205,7 +213,8 @@ const Chart = ({
           })}
         </LineChart>
       </ResponsiveContainer>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
