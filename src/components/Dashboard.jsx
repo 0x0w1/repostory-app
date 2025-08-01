@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import Chart from "./Chart";
 import RepositorySelector from "./RepositorySelector";
 import MetricSelector from "./MetricSelector";
@@ -12,6 +13,7 @@ import {
 } from "../utils/dataLoader";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [repositoriesByCategory, setRepositoriesByCategory] = useState({});
   const [selectedRepos, setSelectedRepos] = useState([]);
   const [hiddenRepos, setHiddenRepos] = useState(new Set());
@@ -325,7 +327,18 @@ const Dashboard = () => {
               Track and compare GitHub stars and forks.
             </p>
           </div>
-          <ThemeToggle className="mt-1" />
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>Back to Home</span>
+            </button>
+            <ThemeToggle />
+          </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -431,7 +444,6 @@ const Dashboard = () => {
               repositoriesByCategory={repositoriesByCategory}
               selectedRepos={selectedRepos}
               onRepoToggle={setSelectedRepos}
-              maxSelections={15}
             />
           </div>
         </div>
