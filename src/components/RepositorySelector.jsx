@@ -1,8 +1,7 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { formatNumber } from "../utils/dataLoader";
 
 const RepositorySelector = ({
@@ -11,6 +10,7 @@ const RepositorySelector = ({
   onRepoToggle,
   maxSelections = null,
 }) => {
+  const [searchQuery, setSearchQuery] = useState("");
   const handleToggle = (repo) => {
     const isSelected = selectedRepos.some(
       (selected) => selected.name === repo.name
@@ -31,106 +31,112 @@ const RepositorySelector = ({
     });
   };
 
-  const handleSelectAll = () => {
-    const allRepos = Object.values(repositoriesByCategory).flat();
-    const reposToSelect = maxSelections ? allRepos.slice(0, maxSelections) : allRepos;
+  const handleSelectFromSearch = (repo) => {
+    const isSelected = selectedRepos.some(selected => selected.name === repo.name);
+    
+    let newRepos;
+    if (isSelected) {
+      // Deselect if already selected
+      newRepos = selectedRepos.filter(selected => selected.name !== repo.name);
+    } else {
+      // Select if not selected and within limits
+      if (maxSelections && selectedRepos.length >= maxSelections) {
+        return; // At max limit
+      }
+      newRepos = [...selectedRepos, repo];
+    }
+    
     requestAnimationFrame(() => {
-      onRepoToggle(reposToSelect);
+      onRepoToggle(newRepos);
     });
   };
 
-  const handleDeselectAll = () => {
-    requestAnimationFrame(() => {
-      onRepoToggle([]);
-    });
-  };
 
-  const allReposCount = Object.values(repositoriesByCategory).flat().length;
-  const canSelectAll = maxSelections 
-    ? selectedRepos.length < Math.min(maxSelections, allReposCount)
-    : selectedRepos.length < allReposCount;
-  const hasSelections = selectedRepos.length > 0;
+
+  const filteredRepositoriesByCategory = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return repositoriesByCategory;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = {};
+
+    Object.entries(repositoriesByCategory).forEach(([category, repositories]) => {
+      const matchingRepos = repositories.filter(repo =>
+        repo.name.toLowerCase().includes(query)
+      );
+      if (matchingRepos.length > 0) {
+        filtered[category] = matchingRepos;
+      }
+    });
+
+    return filtered;
+  }, [repositoriesByCategory, searchQuery]);
+
+  const totalReposCount = Object.values(repositoriesByCategory).flat().length;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Select Repositories</CardTitle>
-          <span className="text-sm text-muted-foreground">
-            {selectedRepos.length}{maxSelections ? `/${maxSelections}` : ''} selected
-          </span>
-        </div>
+    <Card className="flex flex-col max-h-[400px] lg:max-h-[700px]">
+      <CardHeader className="flex-shrink-0">
+        <CardTitle className="text-lg">
+          Select Repositories ({selectedRepos.length}/{totalReposCount})
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex space-x-2 mb-4">
-          <Button
-            onClick={handleSelectAll}
-            disabled={!canSelectAll}
-            size="sm"
-            variant={canSelectAll ? "default" : "secondary"}
-          >
-            Select All ({maxSelections ? Math.min(maxSelections, allReposCount) : allReposCount})
-          </Button>
-
-          <Button
-            onClick={handleDeselectAll}
-            disabled={!hasSelections}
-            size="sm"
-            variant={hasSelections ? "secondary" : "outline"}
-          >
-            Deselect All
-          </Button>
+      <CardContent className="flex-1 flex flex-col overflow-hidden">
+        <div className="mb-4">
+          <Input
+            placeholder="Search repositories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full focus:outline-none focus:border-primary focus-visible:ring-0"
+          />
         </div>
 
-        <div className="space-y-4 max-h-192 overflow-y-auto">
-          {Object.entries(repositoriesByCategory).map(
-            ([category, repositories]) => (
-              <div key={category} className="space-y-2">
-                <h4 className="text-sm font-medium text-foreground capitalize border-b border-border pb-1">
-                  {category.replace(/-/g, " ")}
-                </h4>
-                {repositories.map((repo) => {
-                  const isSelected = selectedRepos.some(
-                    (selected) => selected.name === repo.name
-                  );
-                  const canSelect =
-                    !maxSelections || selectedRepos.length < maxSelections || isSelected;
-
-                  return (
-                    <div
-                      key={repo.name}
-                      className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
-                        isSelected
-                          ? "bg-primary/10 border-primary"
-                          : canSelect
-                          ? "hover:bg-accent border-border"
-                          : "opacity-50 cursor-not-allowed border-border"
-                      }`}
-                      onClick={() => canSelect && handleToggle(repo)}
-                    >
-                      <Checkbox
-                        checked={isSelected}
-                        disabled={!canSelect}
-                        className="mr-3"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">
-                          {repo.name}
-                        </p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          ⭐ {formatNumber(repo.totalStars)} stars
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+        {searchQuery.trim() && (
+          <div className="space-y-2 flex-1 overflow-y-auto mb-4 pr-2" style={{ scrollbarWidth: 'thin' }}>
+            {Object.keys(filteredRepositoriesByCategory).length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No repositories found matching "{searchQuery}"
               </div>
-            )
-          )}
-        </div>
+            ) : (
+              Object.entries(filteredRepositoriesByCategory).map(
+                ([category, repositories]) => 
+                  repositories.map((repo) => {
+                    const isSelected = selectedRepos.some(
+                      (selected) => selected.name === repo.name
+                    );
+                    const canSelect = !maxSelections || selectedRepos.length < maxSelections || isSelected;
+
+                    return (
+                      <div
+                        key={repo.name}
+                        className={`flex items-center p-3 rounded-lg border cursor-pointer transition-colors ${
+                          isSelected
+                            ? "bg-primary/10 border-primary"
+                            : canSelect
+                            ? "hover:bg-accent border-border"
+                            : "opacity-50 cursor-not-allowed border-border"
+                        }`}
+                        onClick={() => canSelect && handleSelectFromSearch(repo)}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground truncate">
+                            {repo.name} {isSelected && "✓"}
+                          </p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            ⭐ {formatNumber(repo.totalStars)} stars • {category.replace(/-/g, " ")}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+              ).flat()
+            )}
+          </div>
+        )}
 
         {selectedRepos.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-border">
+          <div className="pt-4 border-t border-border">
             <p className="text-sm text-muted-foreground mb-2">Selected repositories:</p>
             <div className="flex flex-wrap gap-2">
               {selectedRepos.map((repo) => (
