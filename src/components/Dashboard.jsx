@@ -324,16 +324,17 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        <header className="mb-8 flex justify-between items-start">
-          <div>
+        <header className="mb-8 flex justify-between items-center">
+          <div className="flex-1">
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Repository Stars/Forks History Dashboard
+              <span className="lg:hidden">Repostory</span>
+              <span className="hidden lg:inline">Repostory : <span className="text-xl text-muted-foreground font-normal">repository stars / forks history dashboard</span></span>
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground whitespace-nowrap hidden lg:block">
               Track and compare GitHub stars and forks.
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 flex-shrink-0">
             <Button
               variant="outline"
               size="sm"
@@ -354,7 +355,18 @@ const Dashboard = () => {
           {/* Chart section - first on mobile */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Repository Trends</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl">Repository Trends</CardTitle>
+                {selectedRepos.length > 0 && (
+                  <Button
+                    onClick={() => setSelectedRepos([])}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {chartLoading ? (
@@ -385,18 +397,18 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Date Range section - second on mobile */}
+          {/* Metric selector - second on mobile */}
+          <MetricSelector
+            selectedMetric={selectedMetric}
+            onMetricChange={setSelectedMetric}
+          />
+
+          {/* Date Range section - third on mobile */}
           <DateRangeSelector
             startDate={startDate}
             endDate={endDate}
             onStartDateChange={setStartDate}
             onEndDateChange={setEndDate}
-          />
-
-          {/* Metric selector - third on mobile */}
-          <MetricSelector
-            selectedMetric={selectedMetric}
-            onMetricChange={setSelectedMetric}
           />
 
           {/* Repository selector - fourth on mobile */}
@@ -414,7 +426,18 @@ const Dashboard = () => {
           <div className="lg:col-span-3">
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-xl">Repository Trends</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl">Repository Trends</CardTitle>
+                  {selectedRepos.length > 0 && (
+                    <Button
+                      onClick={() => setSelectedRepos([])}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Clear All
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {chartLoading ? (

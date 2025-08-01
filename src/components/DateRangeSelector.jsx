@@ -34,7 +34,7 @@ const DateRangeSelector = ({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Date Range</CardTitle>
           <Button
@@ -47,10 +47,10 @@ const DateRangeSelector = ({
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="start-date" className="mb-2">Start Date</Label>
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="text-center">
+            <Label htmlFor="start-date" className="block mb-1 text-sm">Start Date</Label>
             <Input
               type="text"
               id="start-date"
@@ -59,11 +59,12 @@ const DateRangeSelector = ({
               placeholder="yyyy-MM-dd"
               pattern="\d{4}-\d{2}-\d{2}"
               title="Please enter date in yyyy-MM-dd format"
+              className="text-center"
             />
           </div>
 
-          <div>
-            <Label htmlFor="end-date" className="mb-2">End Date</Label>
+          <div className="text-center">
+            <Label htmlFor="end-date" className="block mb-1 text-sm">End Date</Label>
             <Input
               type="text"
               id="end-date"
@@ -72,6 +73,7 @@ const DateRangeSelector = ({
               placeholder="yyyy-MM-dd"
               pattern="\d{4}-\d{2}-\d{2}"
               title="Please enter date in yyyy-MM-dd format"
+              className="text-center"
             />
           </div>
         </div>
