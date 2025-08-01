@@ -31,9 +31,6 @@ const DateRangeSelector = ({
     onEndDateChange("");
   };
 
-  const handleClearStart = () => {
-    onStartDateChange("");
-  };
 
   return (
     <Card>
@@ -51,37 +48,30 @@ const DateRangeSelector = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <Label htmlFor="start-date">Start Date</Label>
-              {startDate && (
-                <Button
-                  onClick={handleClearStart}
-                  variant="link"
-                  size="sm"
-                  className="text-xs text-muted-foreground h-auto p-0"
-                >
-                  Clear (show all)
-                </Button>
-              )}
-            </div>
+            <Label htmlFor="start-date" className="mb-2">Start Date</Label>
             <Input
-              type="date"
+              type="text"
               id="start-date"
               value={formatDateForInput(startDate)}
               onChange={handleStartDateChange}
+              placeholder="yyyy-MM-dd"
+              pattern="\d{4}-\d{2}-\d{2}"
+              title="Please enter date in yyyy-MM-dd format"
             />
           </div>
 
           <div>
             <Label htmlFor="end-date" className="mb-2">End Date</Label>
             <Input
-              type="date"
+              type="text"
               id="end-date"
               value={formatDateForInput(endDate)}
               onChange={handleEndDateChange}
-              min={formatDateForInput(startDate)}
+              placeholder="yyyy-MM-dd"
+              pattern="\d{4}-\d{2}-\d{2}"
+              title="Please enter date in yyyy-MM-dd format"
             />
           </div>
         </div>
