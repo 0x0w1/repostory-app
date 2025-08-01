@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Chart from "./Chart";
 import RepositorySelector from "./RepositorySelector";
 import MetricSelector from "./MetricSelector";
@@ -295,115 +297,129 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading repository data...</p>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-[300px]">
+          <CardContent className="flex flex-col items-center space-y-4 pt-6">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-muted-foreground">Loading repository data...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-xl mb-2">⚠️</div>
-          <p className="text-gray-600 dark:text-gray-300">{error}</p>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-[300px]">
+          <CardContent className="flex flex-col items-center space-y-4 pt-6">
+            <div className="text-destructive text-xl">⚠️</div>
+            <p className="text-muted-foreground text-center">{error}</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
               Repository Stars/Forks History Dashboard
             </h1>
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-muted-foreground">
               Track and compare GitHub stars and forks.
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => navigate('/')}
-              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+              className="flex items-center space-x-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               <span>Back to Home</span>
-            </button>
+            </Button>
             <ThemeToggle />
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Chart section - appears first on mobile */}
-          <div className="order-1 lg:order-2 lg:col-span-3">
-            <div className="lg:hidden mb-6 space-y-6">
-              <MetricSelector
-                selectedMetric={selectedMetric}
-                onMetricChange={setSelectedMetric}
-              />
-
-              <DateRangeSelector
-                startDate={startDate}
-                endDate={endDate}
-                onStartDateChange={setStartDate}
-                onEndDateChange={setEndDate}
-              />
-            </div>
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Repository Trends
-              </h2>
-            </div>
-
-            {chartLoading ? (
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  {selectedMetric === "stars" ? "Stars" : "Forks"} Over Time
-                </h3>
+        {/* Mobile Layout */}
+        <div className="lg:hidden space-y-6">
+          {/* Chart section - first on mobile */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Repository Trends</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {chartLoading ? (
                 <div
                   className="flex items-center justify-center"
-                  style={{ height: isMobile ? "400px" : "676px" }}
+                  style={{ height: "400px" }}
                 >
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-300">Processing chart data...</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                      {selectedRepos.length} repositories selected
-                    </p>
+                  <div className="text-center space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                    <div>
+                      <p className="text-muted-foreground">Processing chart data...</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {selectedRepos.length} repositories selected
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <Chart
-                key={`${selectedMetric}-${selectedRepos.map(r => r.name).join('-')}`}
-                data={chartData}
-                metric={selectedMetric}
-                selectedRepos={selectedRepos}
-                hiddenRepos={hiddenRepos}
-                onRepoVisibilityToggle={handleRepoVisibilityToggle}
-              />
-            )}
+              ) : (
+                <Chart
+                  key={`${selectedMetric}-${selectedRepos.map(r => r.name).join('-')}`}
+                  data={chartData}
+                  metric={selectedMetric}
+                  selectedRepos={selectedRepos}
+                  hiddenRepos={hiddenRepos}
+                  onRepoVisibilityToggle={handleRepoVisibilityToggle}
+                />
+              )}
+            </CardContent>
+          </Card>
 
-            {selectedRepos.length > 0 && (
-              <div className="mt-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  Repository Statistics
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Date Range section - second on mobile */}
+          <DateRangeSelector
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+          />
+
+          {/* Metric selector - third on mobile */}
+          <MetricSelector
+            selectedMetric={selectedMetric}
+            onMetricChange={setSelectedMetric}
+          />
+
+          {/* Repository selector - fourth on mobile */}
+          <RepositorySelector
+            repositoriesByCategory={repositoriesByCategory}
+            selectedRepos={selectedRepos}
+            onRepoToggle={setSelectedRepos}
+          />
+
+          {/* Repository Statistics - last on mobile */}
+          {selectedRepos.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Repository Statistics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4">
                   {selectedRepos.map((repo) => (
-                    <div key={repo.name} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                    <Card key={repo.name} className="p-4">
+                      <h4 className="font-medium text-foreground mb-2">
                         {repo.name}
                       </h4>
-                      <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                      <div className="space-y-1 text-sm text-muted-foreground">
                         <p>⭐ {repo.totalStars.toLocaleString()} stars</p>
                         <p>
                           🔀{" "}
@@ -412,26 +428,96 @@ const Dashboard = () => {
                             .toLocaleString()}{" "}
                           forks
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-muted-foreground">
                           Updated:{" "}
                           {new Date(repo.fetchedAt).toLocaleDateString()}
                         </p>
                       </div>
-                    </div>
+                    </Card>
                   ))}
                 </div>
-              </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden lg:grid lg:grid-cols-4 gap-6">
+          {/* Chart section - main content area on desktop */}
+          <div className="lg:col-span-3">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-xl">Repository Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {chartLoading ? (
+                  <div
+                    className="flex items-center justify-center"
+                    style={{ height: "676px" }}
+                  >
+                    <div className="text-center space-y-4">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                      <div>
+                        <p className="text-muted-foreground">Processing chart data...</p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {selectedRepos.length} repositories selected
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <Chart
+                    key={`${selectedMetric}-${selectedRepos.map(r => r.name).join('-')}`}
+                    data={chartData}
+                    metric={selectedMetric}
+                    selectedRepos={selectedRepos}
+                    hiddenRepos={hiddenRepos}
+                    onRepoVisibilityToggle={handleRepoVisibilityToggle}
+                  />
+                )}
+              </CardContent>
+            </Card>
+
+            {selectedRepos.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Repository Statistics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {selectedRepos.map((repo) => (
+                      <Card key={repo.name} className="p-4">
+                        <h4 className="font-medium text-foreground mb-2">
+                          {repo.name}
+                        </h4>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <p>⭐ {repo.totalStars.toLocaleString()} stars</p>
+                          <p>
+                            🔀{" "}
+                            {Object.values(repo.forksByDate)
+                              .reduce((sum, forks) => sum + forks, 0)
+                              .toLocaleString()}{" "}
+                            forks
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Updated:{" "}
+                            {new Date(repo.fetchedAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
 
-          {/* Selector section - appears second on mobile, sidebar on desktop */}
-          <div className="order-2 lg:order-1 lg:col-span-1 space-y-6">
-            <div className="hidden lg:block">
-              <MetricSelector
-                selectedMetric={selectedMetric}
-                onMetricChange={setSelectedMetric}
-              />
-            </div>
+          {/* Sidebar section - control panel on desktop */}
+          <div className="lg:col-span-1 space-y-6">
+            <MetricSelector
+              selectedMetric={selectedMetric}
+              onMetricChange={setSelectedMetric}
+            />
 
             <DateRangeSelector
               startDate={startDate}
