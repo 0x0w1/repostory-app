@@ -406,39 +406,6 @@ const Dashboard = () => {
             onRepoToggle={setSelectedRepos}
           />
 
-          {/* Repository Statistics - last on mobile */}
-          {selectedRepos.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Repository Statistics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 gap-4">
-                  {selectedRepos.map((repo) => (
-                    <Card key={repo.name} className="p-4">
-                      <h4 className="font-medium text-foreground mb-2">
-                        {repo.name}
-                      </h4>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <p>⭐ {repo.totalStars.toLocaleString()} stars</p>
-                        <p>
-                          🔀{" "}
-                          {Object.values(repo.forksByDate)
-                            .reduce((sum, forks) => sum + forks, 0)
-                            .toLocaleString()}{" "}
-                          forks
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Updated:{" "}
-                          {new Date(repo.fetchedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* Desktop Layout */}
@@ -477,39 +444,6 @@ const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
-
-            {selectedRepos.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Repository Statistics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedRepos.map((repo) => (
-                      <Card key={repo.name} className="p-4">
-                        <h4 className="font-medium text-foreground mb-2">
-                          {repo.name}
-                        </h4>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <p>⭐ {repo.totalStars.toLocaleString()} stars</p>
-                          <p>
-                            🔀{" "}
-                            {Object.values(repo.forksByDate)
-                              .reduce((sum, forks) => sum + forks, 0)
-                              .toLocaleString()}{" "}
-                            forks
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Updated:{" "}
-                            {new Date(repo.fetchedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* Sidebar section - control panel on desktop */}
