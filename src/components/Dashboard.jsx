@@ -4,6 +4,7 @@ import RepositorySelector from "./RepositorySelector";
 import MetricSelector from "./MetricSelector";
 import DateRangeSelector from "./DateRangeSelector";
 import ThemeToggle from "./ThemeToggle";
+import ConsentManager from "./ConsentManager";
 import {
   loadRepositoryData,
   processTimeSeriesData,
@@ -435,6 +436,9 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      
+      {/* Google AdSense CMP Consent Manager */}
+      <ConsentManager />
     </div>
   );
 };
