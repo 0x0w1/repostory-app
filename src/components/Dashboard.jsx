@@ -124,7 +124,9 @@ const Dashboard = () => {
 
           const timeSeriesData = processTimeSeriesData(
             repo.starsByDate || {},
-            repo.forksByDate || {}
+            repo.forksByDate || {},
+            repo.issuesByDate || {},
+            repo.pullRequestsByDate || {}
           );
 
           // Create date-indexed map for O(1) lookup
@@ -179,8 +181,24 @@ const Dashboard = () => {
             const dataPoint = dateMap.get(date);
 
             if (dataPoint) {
-              point[repo.name] =
-                metric === "stars" ? dataPoint.stars : dataPoint.forks;
+              let value = 0;
+              switch (metric) {
+                case "stars":
+                  value = dataPoint.stars;
+                  break;
+                case "forks":
+                  value = dataPoint.forks;
+                  break;
+                case "issues":
+                  value = dataPoint.issues;
+                  break;
+                case "pullRequests":
+                  value = dataPoint.pullRequests;
+                  break;
+                default:
+                  value = dataPoint.stars;
+              }
+              point[repo.name] = value;
             } else {
               // Use binary search for better performance
               let lastValue = 0;
@@ -199,8 +217,22 @@ const Dashboard = () => {
               }
 
               if (bestIndex !== -1) {
-                lastValue =
-                  metric === "stars" ? data[bestIndex].stars : data[bestIndex].forks;
+                switch (metric) {
+                  case "stars":
+                    lastValue = data[bestIndex].stars;
+                    break;
+                  case "forks":
+                    lastValue = data[bestIndex].forks;
+                    break;
+                  case "issues":
+                    lastValue = data[bestIndex].issues;
+                    break;
+                  case "pullRequests":
+                    lastValue = data[bestIndex].pullRequests;
+                    break;
+                  default:
+                    lastValue = data[bestIndex].stars;
+                }
               }
               point[repo.name] = lastValue;
             }
@@ -240,8 +272,24 @@ const Dashboard = () => {
           const dataPoint = dateMap.get(point.date);
 
           if (dataPoint) {
-            newPoint[repo.name] =
-              selectedMetric === "stars" ? dataPoint.stars : dataPoint.forks;
+            let value = 0;
+            switch (selectedMetric) {
+              case "stars":
+                value = dataPoint.stars;
+                break;
+              case "forks":
+                value = dataPoint.forks;
+                break;
+              case "issues":
+                value = dataPoint.issues;
+                break;
+              case "pullRequests":
+                value = dataPoint.pullRequests;
+                break;
+              default:
+                value = dataPoint.stars;
+            }
+            newPoint[repo.name] = value;
           } else {
             // Use binary search to find the last available value before this date
             let lastValue = 0;
@@ -260,8 +308,22 @@ const Dashboard = () => {
             }
 
             if (bestIndex !== -1) {
-              lastValue =
-                selectedMetric === "stars" ? data[bestIndex].stars : data[bestIndex].forks;
+              switch (selectedMetric) {
+                case "stars":
+                  lastValue = data[bestIndex].stars;
+                  break;
+                case "forks":
+                  lastValue = data[bestIndex].forks;
+                  break;
+                case "issues":
+                  lastValue = data[bestIndex].issues;
+                  break;
+                case "pullRequests":
+                  lastValue = data[bestIndex].pullRequests;
+                  break;
+                default:
+                  lastValue = data[bestIndex].stars;
+              }
             }
             newPoint[repo.name] = lastValue;
           }
@@ -331,7 +393,7 @@ const Dashboard = () => {
               <span className="hidden lg:inline">Repostory : <span className="text-xl text-muted-foreground font-normal">repository stars / forks history dashboard</span></span>
             </h1>
             <p className="text-muted-foreground whitespace-nowrap hidden lg:block">
-              Track and compare GitHub stars and forks.
+              Track and compare GitHub stars, forks, issues, and pull requests.
             </p>
           </div>
           <div className="flex items-center space-x-3 flex-shrink-0">
