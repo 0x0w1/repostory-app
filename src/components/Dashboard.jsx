@@ -17,6 +17,13 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [repositoriesByCategory, setRepositoriesByCategory] = useState({});
+
+  useEffect(() => {
+    document.title = 'Repostory : Python Repository Trends Dashboard';
+    return () => {
+      document.title = 'Repository Dashboard';
+    };
+  }, []);
   const [selectedRepos, setSelectedRepos] = useState([]);
   const [hiddenRepos, setHiddenRepos] = useState(new Set());
   const [selectedMetric, setSelectedMetric] = useState("stars");
@@ -390,7 +397,7 @@ const Dashboard = () => {
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-foreground mb-2">
               <span className="lg:hidden">Repostory</span>
-              <span className="hidden lg:inline">Repostory : <span className="text-xl text-muted-foreground font-normal">repository stars / forks history dashboard</span></span>
+              <span className="hidden lg:inline">Repostory : <span className="text-xl text-muted-foreground font-normal">python repository trends dashboard</span></span>
             </h1>
             <p className="text-muted-foreground whitespace-nowrap hidden lg:block">
               Track and compare GitHub stars, forks, issues, and pull requests.
