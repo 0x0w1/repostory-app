@@ -8,6 +8,7 @@ import MetricSelector from "./MetricSelector";
 import DateRangeSelector from "./DateRangeSelector";
 import ThemeToggle from "./ThemeToggle";
 import ConsentManager from "./ConsentManager";
+import CategorySection from "./CategorySection";
 import {
   loadRepositoryData,
   processTimeSeriesData,
@@ -385,7 +386,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-[96rem] mx-auto px-4 py-8">
         <header className="mb-8 flex justify-between items-center">
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -480,6 +481,13 @@ const Dashboard = () => {
             onRepoToggle={setSelectedRepos}
           />
 
+          {/* Category Section - Mobile */}
+          <CategorySection
+            repositoriesByCategory={repositoriesByCategory}
+            selectedMetric={selectedMetric}
+            startDate={startDate}
+            endDate={endDate}
+          />
         </div>
 
         {/* Desktop Layout */}
@@ -552,6 +560,14 @@ const Dashboard = () => {
             />
           </div>
         </div>
+
+        {/* Category Section - Shows top 3 repositories by category */}
+        <CategorySection
+          repositoriesByCategory={repositoriesByCategory}
+          selectedMetric={selectedMetric}
+          startDate={startDate}
+          endDate={endDate}
+        />
       </div>
       
       {/* Google AdSense CMP Consent Manager */}
