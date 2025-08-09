@@ -157,7 +157,10 @@ const Chart = ({
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">
-          {metric === "stars" ? "Stars" : "Forks"} Over Time
+          {metric === "stars" ? "Stars" : 
+           metric === "forks" ? "Forks" : 
+           metric === "issues" ? "Issues" : 
+           metric === "pullRequests" ? "Pull Requests" : "Stars"} Over Time
         </CardTitle>
       </CardHeader>
       <CardContent>
