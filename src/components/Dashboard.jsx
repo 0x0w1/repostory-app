@@ -8,6 +8,7 @@ import MetricSelector from "./MetricSelector";
 import DateRangeSelector from "./DateRangeSelector";
 import ThemeToggle from "./ThemeToggle";
 import ConsentManager from "./ConsentManager";
+import CategorySection from "./CategorySection";
 import {
   loadRepositoryData,
   processTimeSeriesData,
@@ -17,6 +18,13 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const [repositoriesByCategory, setRepositoriesByCategory] = useState({});
+
+  useEffect(() => {
+    document.title = 'Repostory : Python Repository Trends Dashboard';
+    return () => {
+      document.title = 'Repository Dashboard';
+    };
+  }, []);
   const [selectedRepos, setSelectedRepos] = useState([]);
   const [hiddenRepos, setHiddenRepos] = useState(new Set());
   const [selectedMetric, setSelectedMetric] = useState("stars");
@@ -385,12 +393,12 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-[96rem] mx-auto px-4 py-8">
         <header className="mb-8 flex justify-between items-center">
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-foreground mb-2">
               <span className="lg:hidden">Repostory</span>
-              <span className="hidden lg:inline">Repostory : <span className="text-xl text-muted-foreground font-normal">repository stars / forks history dashboard</span></span>
+              <span className="hidden lg:inline">Repostory : <span className="text-xl text-muted-foreground font-normal">python repository trends dashboard</span></span>
             </h1>
             <p className="text-muted-foreground whitespace-nowrap hidden lg:block">
               Track and compare GitHub stars, forks, issues, and pull requests.
@@ -480,6 +488,13 @@ const Dashboard = () => {
             onRepoToggle={setSelectedRepos}
           />
 
+          {/* Category Section - Mobile */}
+          <CategorySection
+            repositoriesByCategory={repositoriesByCategory}
+            selectedMetric={selectedMetric}
+            startDate={startDate}
+            endDate={endDate}
+          />
         </div>
 
         {/* Desktop Layout */}
@@ -552,6 +567,14 @@ const Dashboard = () => {
             />
           </div>
         </div>
+
+        {/* Category Section - Shows top 3 repositories by category */}
+        <CategorySection
+          repositoriesByCategory={repositoriesByCategory}
+          selectedMetric={selectedMetric}
+          startDate={startDate}
+          endDate={endDate}
+        />
       </div>
       
       {/* Google AdSense CMP Consent Manager */}
