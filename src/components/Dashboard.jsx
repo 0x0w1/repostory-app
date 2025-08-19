@@ -20,9 +20,9 @@ const Dashboard = () => {
   const [repositoriesByCategory, setRepositoriesByCategory] = useState({});
 
   useEffect(() => {
-    document.title = 'Repostory : Python Repository Trends Dashboard';
+    document.title = "Repostory : Python Repository Trends Dashboard";
     return () => {
-      document.title = 'Repository Dashboard';
+      document.title = "Repository Dashboard";
     };
   }, []);
   const [selectedRepos, setSelectedRepos] = useState([]);
@@ -126,7 +126,7 @@ const Dashboard = () => {
         // Process each repository
         for (const repo of repos) {
           if (!repo || !repo.name) {
-            console.warn('Invalid repository object:', repo);
+            console.warn("Invalid repository object:", repo);
             continue;
           }
 
@@ -180,7 +180,9 @@ const Dashboard = () => {
           repos.forEach((repo) => {
             const processedRepo = processed[repo.name];
             if (!processedRepo) {
-              console.warn(`No processed data found for repository: ${repo.name}`);
+              console.warn(
+                `No processed data found for repository: ${repo.name}`
+              );
               point[repo.name] = 0;
               return;
             }
@@ -261,7 +263,12 @@ const Dashboard = () => {
 
   // Update chart data when only metric changes (reuse existing processed data)
   const updateChartForMetricChange = useCallback(() => {
-    if (!processedRepoData || Object.keys(processedRepoData).length === 0 || !selectedRepos || selectedRepos.length === 0) {
+    if (
+      !processedRepoData ||
+      Object.keys(processedRepoData).length === 0 ||
+      !selectedRepos ||
+      selectedRepos.length === 0
+    ) {
       return;
     }
 
@@ -342,7 +349,6 @@ const Dashboard = () => {
     });
   }, [selectedMetric]);
 
-
   // Create a stable debounced function that always uses current metric
   const debouncedProcessData = useMemo(
     () => debounce((repos, metric) => processRepositoryData(repos, metric), 50),
@@ -368,7 +374,7 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-[300px]">
+        <Card className="w-full max-w-md mx-auto">
           <CardContent className="flex flex-col items-center space-y-4 pt-6">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             <p className="text-muted-foreground">Loading repository data...</p>
@@ -381,7 +387,7 @@ const Dashboard = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="w-[300px]">
+        <Card className="w-full max-w-md mx-auto">
           <CardContent className="flex flex-col items-center space-y-4 pt-6">
             <div className="text-destructive text-xl">⚠️</div>
             <p className="text-muted-foreground text-center">{error}</p>
@@ -392,13 +398,18 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-[96rem] mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background m-2.5">
+      <div className="py-8">
         <header className="mb-8 flex justify-between items-center">
           <div className="flex-1">
             <h1 className="text-3xl font-bold text-foreground mb-2">
               <span className="lg:hidden">Repostory</span>
-              <span className="hidden lg:inline">Repostory : <span className="text-xl text-muted-foreground font-normal">python repository trends dashboard</span></span>
+              <span className="hidden lg:inline">
+                Repostory :{" "}
+                <span className="text-xl text-muted-foreground font-normal">
+                  python repository trends dashboard
+                </span>
+              </span>
             </h1>
             <p className="text-muted-foreground whitespace-nowrap hidden lg:block">
               Track and compare GitHub stars, forks, issues, and pull requests.
@@ -408,11 +419,21 @@ const Dashboard = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/")}
               className="flex items-center space-x-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
               <span>Back to Home</span>
             </Button>
@@ -447,7 +468,9 @@ const Dashboard = () => {
                   <div className="text-center space-y-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                     <div>
-                      <p className="text-muted-foreground">Processing chart data...</p>
+                      <p className="text-muted-foreground">
+                        Processing chart data...
+                      </p>
                       <p className="text-sm text-muted-foreground mt-2">
                         {selectedRepos.length} repositories selected
                       </p>
@@ -456,7 +479,9 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <Chart
-                  key={`${selectedMetric}-${selectedRepos.map(r => r.name).join('-')}`}
+                  key={`${selectedMetric}-${selectedRepos
+                    .map((r) => r.name)
+                    .join("-")}`}
                   data={chartData}
                   metric={selectedMetric}
                   selectedRepos={selectedRepos}
@@ -525,7 +550,9 @@ const Dashboard = () => {
                     <div className="text-center space-y-4">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                       <div>
-                        <p className="text-muted-foreground">Processing chart data...</p>
+                        <p className="text-muted-foreground">
+                          Processing chart data...
+                        </p>
                         <p className="text-sm text-muted-foreground mt-2">
                           {selectedRepos.length} repositories selected
                         </p>
@@ -534,7 +561,9 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <Chart
-                    key={`${selectedMetric}-${selectedRepos.map(r => r.name).join('-')}`}
+                    key={`${selectedMetric}-${selectedRepos
+                      .map((r) => r.name)
+                      .join("-")}`}
                     data={chartData}
                     metric={selectedMetric}
                     selectedRepos={selectedRepos}
@@ -576,7 +605,7 @@ const Dashboard = () => {
           endDate={endDate}
         />
       </div>
-      
+
       {/* Google AdSense CMP Consent Manager */}
       <ConsentManager />
     </div>
